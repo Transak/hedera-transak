@@ -15,8 +15,8 @@ const testData = {
   network: process.env.NETWORK || '',
   crypto: 'HBAR',
   amount: 0.000005,
-  decimals: 1,
-  tokenId: '0.0.48220500', // '0.0.48219534'
+  decimals: 8,
+  tokenId: '', // '0.0.48219534'
 };
 
 const keys = {
@@ -73,7 +73,7 @@ describe('Hedera module', () => {
     mainTimeout,
   );
 
-  test.skip(
+  test(
     'should isValidWalletAddress',
     async function () {
       const result = await HederaLib.isValidWalletAddress(testData.toWalletAddress);
@@ -91,12 +91,12 @@ describe('Hedera module', () => {
 
       const result = await HederaLib.sendTransaction({
         to,
-        amount: 2,
+        amount,
         network,
-        decimals: 1,
+        decimals,
         accountId,
         privateKey,
-        tokenId: '0.0.48220500',
+        tokenId,
       });
 
       console.log({ result });
@@ -108,7 +108,7 @@ describe('Hedera module', () => {
     mainTimeout * 3,
   );
 
-  test.skip(
+  test(
     'should getTransaction',
     async function () {
       const { network, privateKey, accountId } = testData;

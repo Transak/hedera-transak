@@ -176,19 +176,14 @@ async function sendTransaction({
       .addHbarTransfer(to, Hbar.fromTinybars(amountInCrypto.toNumber())); //Receiving account
   }
 
-  // TODO - Add Hedera TOKEN SERVICE Support ERC-20-Eqv
-  // if (tokenId) {
-  //   const transaction = await new TokenUnfreezeTransaction()
-  //   .setAccountId(accountId)
-  //   .setTokenId(tokenId)
-  //   .freezeWith(client);
-
-  //   transferTransaction
-  //     .addTokenTransferWithDecimals(tokenId, from, -amountInCrypto.toNumber(), decimals) //Sending account
-  //     .addTokenTransferWithDecimals(tokenId, to, amountInCrypto.toNumber(), decimals) //Receiving account
-  //     .freezeWith(client)
-  //     .signWithOperator(client);
-  // }
+  if (tokenId) {
+    // user needs to associate the token with the account before sending the token
+    transferTransaction
+      .addTokenTransferWithDecimals(tokenId, from, -amountInCrypto.toNumber(), decimals) //Sending account
+      .addTokenTransferWithDecimals(tokenId, to, amountInCrypto.toNumber(), decimals) //Receiving account
+      .freezeWith(client)
+      .signWithOperator(client);
+  }
   const sendTransactionResponse = await transferTransaction.execute(client);
 
   const transactionReceipt = await sendTransactionResponse.getReceipt(client);
