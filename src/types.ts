@@ -1,8 +1,4 @@
-import {
-  TransactionResponse,
-  TransactionRecord,
-  TransactionReceipt,
-} from '@hashgraph/sdk';
+import { TransactionResponse, TransactionRecord, TransactionReceipt } from '@hashgraph/sdk';
 
 export type Network = {
   networkName: string;
@@ -40,6 +36,7 @@ export type SendTransactionParams = {
   decimals: number;
   accountId: string;
   privateKey: string;
+  tokenId?: string;
 };
 
 export type SendTransactionResult = {

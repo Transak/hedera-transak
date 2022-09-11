@@ -7,8 +7,7 @@ export const _toDecimal = (amount: string, decimals: number): string => {
 };
 
 // converts Hbar to tinybar
-export const _toCrypto = (amount: string, decimals: number): BigNumber =>
-  hethers.utils.parseUnits(amount, decimals);
+export const _toCrypto = (amount: string, decimals: number): BigNumber => hethers.utils.parseUnits(amount, decimals);
 
 export const _getAccountNumber = (txnId: string): string => {
   const [accountId, rest] = txnId.split('@');

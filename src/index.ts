@@ -6,33 +6,27 @@ import {
   AccountBalanceQuery,
   TransactionRecordQuery,
   Hbar,
+  PrivateKey,
+  TokenAssociateTransaction,
+  TokenUnfreezeTransaction,
 } from '@hashgraph/sdk';
-import {
-  Network,
-  GetTransactionResult,
-  SendTransactionResult,
-  SendTransactionParams,
-} from './types';
+import { Network, GetTransactionResult, SendTransactionResult, SendTransactionParams } from './types';
 
-
-const validWallet =
-  /^(0|(?:[1-9]\d*))\.(0|(?:[1-9]\d*))\.(0|(?:[1-9]\d*))(?:-([a-z]{5}))?$/;
+const validWallet = /^(0|(?:[1-9]\d*))\.(0|(?:[1-9]\d*))\.(0|(?:[1-9]\d*))(?:-([a-z]{5}))?$/;
 
 /**
  * Get the network config
  * @param network
  * @returns
  */
-const getNetwork = (network: string) =>
-  (network === 'main' ? networks[network] : networks.testnet) as Network;
+const getNetwork = (network: string) => (network === 'main' ? networks[network] : networks.testnet) as Network;
 
 /**
  * Validate the wallet address
  * @param address
  * @returns
  */
-const isValidWalletAddress = (address: string) =>
-  new RegExp(validWallet).test(address) as boolean;
+const isValidWalletAddress = (address: string) => new RegExp(validWallet).test(address) as boolean;
 
 /**
  *
@@ -40,8 +34,7 @@ const isValidWalletAddress = (address: string) =>
  * @param network
  * @returns
  */
-const getTransactionLink = (txId: string, network: string) =>
-  getNetwork(network).transactionLink(txId) as string;
+const getTransactionLink = (txId: string, network: string) => getNetwork(network).transactionLink(txId) as string;
 
 /**
  * get wallet link for the given address
@@ -57,11 +50,7 @@ const getWalletLink = (walletAddress: string, network: string) =>
  * @param network
  * @returns
  */
-async function getClient(
-  network: string,
-  privateKey: string,
-  accountId: string,
-): Promise<any> {
+async function getClient(network: string, privateKey: string, accountId: string): Promise<any> {
   const config = getNetwork(network);
 
   // If we weren't able to grab it, we should throw a new error
@@ -78,9 +67,11 @@ async function getClient(
 
 /**
  * Get the balance of the transak wallet address
- * @param address
  * @param network
  * @param decimals
+ * @param privateKey
+ * @param accountId
+ * @param tokenId // tokenId
  * @returns
  */
 async function getBalance(
@@ -88,15 +79,20 @@ async function getBalance(
   decimals: number,
   privateKey: string,
   accountId: string,
-  address: string, // contract address
+  tokenId?: string,
 ): Promise<number> {
   const client = await getClient(network, privateKey, accountId);
-  // account's balance is retured in the Hbar unit
+
   const balance = await new AccountBalanceQuery()
-    // .setContractId(address) // TODO - add support for ERC20-Eqv tokens
     .setAccountId(client.operatorAccountId.toString()) //  transak's account id
     .execute(client);
 
+  // if token id is present then return the token balance
+  if (tokenId) {
+    return Number(_toDecimal(balance.tokens?.get(tokenId)?.toString() || '0', decimals));
+  }
+
+  // else return the hbar balance
   return Number(_toDecimal(balance.hbars.toTinybars().toString(), decimals));
 }
 
@@ -120,16 +116,21 @@ async function getTransaction(
     .setIncludeDuplicates(true)
     .execute(client);
 
+  const from = TransactionRecord.transactionId.accountId?.toString();
+
   return {
     transactionData: TransactionRecord,
     receipt: {
-      amount: TransactionRecord.transfers[1].amount.toTinybars().toNumber(),
+      amount: Math.abs(
+        TransactionRecord.transfers
+          .find(d => d.accountId.toString() === from)
+          ?.amount.toTinybars()
+          .toNumber() || 0,
+      ),
       date: TransactionRecord.consensusTimestamp.toDate(),
-      from: TransactionRecord.transactionId.accountId?.toString() || '',
+      from: from || '',
       gasCostCryptoCurrency: 'HBAR',
-      gasCostInCrypto: TransactionRecord.transactionFee
-        .toBigNumber()
-        .toNumber(),
+      gasCostInCrypto: TransactionRecord.transactionFee.toBigNumber().toNumber(),
       gasLimit: 1,
       isPending: false,
       isExecuted: true,
@@ -140,18 +141,15 @@ async function getTransaction(
       nonce: TransactionRecord.transactionId.nonce?.toNumber() || 0,
       transactionHash: TransactionRecord.transactionHash.toString(),
       transactionId: TransactionRecord.transactionId.toString(),
-      transactionLink: getTransactionLink(
-        TransactionRecord.transactionId.toString(),
-        network,
-      ),
+      transactionLink: getTransactionLink(TransactionRecord.transactionId.toString(), network),
     },
   };
 }
 
 /**
  * Send the transaction to the Hedera network
- * @param param0 
- * @returns 
+ * @param param0
+ * @returns
  */
 async function sendTransaction({
   to,
@@ -160,6 +158,7 @@ async function sendTransaction({
   accountId,
   privateKey,
   decimals,
+  tokenId,
 }: SendTransactionParams): Promise<SendTransactionResult> {
   const client = await getClient(network, privateKey, accountId);
 
@@ -168,12 +167,29 @@ async function sendTransaction({
 
   const from = client.operatorAccountId.toString(); // transak wallet address
 
-  // TODO - Add support for ERC20-Eqv tokens
   //Create the transfer transaction
-  const sendTransactionResponse = await new TransferTransaction()
-    .addHbarTransfer(from, Hbar.fromTinybars(-amountInCrypto.toNumber())) //Sending account
-    .addHbarTransfer(to, Hbar.fromTinybars(amountInCrypto.toNumber())) //Receiving account
-    .execute(client);
+  const transferTransaction = new TransferTransaction();
+
+  if (!tokenId) {
+    transferTransaction
+      .addHbarTransfer(from, Hbar.fromTinybars(-amountInCrypto.toNumber())) //Sending account
+      .addHbarTransfer(to, Hbar.fromTinybars(amountInCrypto.toNumber())); //Receiving account
+  }
+
+  // TODO - Add Hedera TOKEN SERVICE Support ERC-20-Eqv
+  // if (tokenId) {
+  //   const transaction = await new TokenUnfreezeTransaction()
+  //   .setAccountId(accountId)
+  //   .setTokenId(tokenId)
+  //   .freezeWith(client);
+
+  //   transferTransaction
+  //     .addTokenTransferWithDecimals(tokenId, from, -amountInCrypto.toNumber(), decimals) //Sending account
+  //     .addTokenTransferWithDecimals(tokenId, to, amountInCrypto.toNumber(), decimals) //Receiving account
+  //     .freezeWith(client)
+  //     .signWithOperator(client);
+  // }
+  const sendTransactionResponse = await transferTransaction.execute(client);
 
   const transactionReceipt = await sendTransactionResponse.getReceipt(client);
 
@@ -190,10 +206,7 @@ async function sendTransaction({
       to,
       transactionHash: sendTransactionResponse.transactionHash,
       transactionId: sendTransactionResponse.transactionId.toString(),
-      transactionLink: getTransactionLink(
-        sendTransactionResponse.transactionId.toString(),
-        network,
-      ),
+      transactionLink: getTransactionLink(sendTransactionResponse.transactionId.toString(), network),
     },
   };
 }

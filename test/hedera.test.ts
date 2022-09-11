@@ -13,23 +13,11 @@ const testData = {
   privateKey: process.env.MY_PRIVATE_KEY || ' ',
   toWalletAddress: process.env.TOWALLETADDRESS || '',
   network: process.env.NETWORK || '',
-
   crypto: 'HBAR',
-  denom: 'uosmo',
   amount: 0.000005,
-  decimals: 8,
-  address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+  decimals: 1,
+  tokenId: '0.0.48220500', // '0.0.48219534'
 };
-
-// (async () => {
-//     const date = await getTransaction(
-//       '0.0.48189397@1662631612.548883749',
-//       'testnet',
-//     );
-//     console.log('date: ', JSON.stringify(date));
-//   })();
-
-// const runtime = { transactionHash: '', transactionLink: '' };
 
 const keys = {
   sendTransactionResponse: [
@@ -69,12 +57,14 @@ describe('Hedera module', () => {
   test(
     'should getBalance',
     async function () {
+      const { network, decimals, privateKey, accountId, tokenId } = testData;
+
       const result = await HederaLib.getBalance(
-        testData.network,
-        testData.decimals,
-        testData.privateKey,
-        testData.accountId,
-        testData.address, // contract address
+        network,
+        decimals,
+        privateKey,
+        accountId,
+        tokenId, // token Id
       );
 
       console.log({ result });
@@ -83,12 +73,10 @@ describe('Hedera module', () => {
     mainTimeout,
   );
 
-  test(
+  test.skip(
     'should isValidWalletAddress',
     async function () {
-      const result = await HederaLib.isValidWalletAddress(
-        testData.toWalletAddress,
-      );
+      const result = await HederaLib.isValidWalletAddress(testData.toWalletAddress);
 
       console.log({ result });
       expect(result).toBe(true);
@@ -99,52 +87,36 @@ describe('Hedera module', () => {
   test(
     'should sendTransaction',
     async function () {
-      const {
-        toWalletAddress: to,
-        network,
-        amount,
-        decimals,
-        accountId,
-        privateKey,
-      } = testData;
+      const { toWalletAddress: to, network, amount, decimals, accountId, privateKey, tokenId } = testData;
 
       const result = await HederaLib.sendTransaction({
         to,
-        amount,
+        amount: 2,
         network,
-        decimals,
+        decimals: 1,
         accountId,
         privateKey,
+        tokenId: '0.0.48220500',
       });
 
       console.log({ result });
 
       runtime.transactionId = result.receipt.transactionId;
 
-      expect(Object.keys(result.receipt)).toEqual(
-        expect.arrayContaining(keys.sendTransactionResponse),
-      );
+      expect(Object.keys(result.receipt)).toEqual(expect.arrayContaining(keys.sendTransactionResponse));
     },
     mainTimeout * 3,
   );
 
-  test(
+  test.skip(
     'should getTransaction',
     async function () {
       const { network, privateKey, accountId } = testData;
       const { transactionId: txnId } = runtime;
-      const result = await HederaLib.getTransaction(
-        txnId,
-        network,
-        privateKey,
-        accountId,
-      );
+      const result = await HederaLib.getTransaction(txnId, network, privateKey, accountId);
       console.log({ result });
 
-      if (result)
-        expect(Object.keys(result.receipt)).toEqual(
-          expect.arrayContaining(keys.getTransactionResponse),
-        );
+      if (result) expect(Object.keys(result.receipt)).toEqual(expect.arrayContaining(keys.getTransactionResponse));
     },
     mainTimeout * 3,
   );
