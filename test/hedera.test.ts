@@ -16,7 +16,7 @@ const testData = {
   crypto: 'HBAR',
   amount: 0.000005,
   decimals: 8,
-  tokenId: '', // '0.0.48219534'
+  tokenId: '', // '0.0.48220530'
 };
 
 const keys = {
@@ -54,6 +54,25 @@ const keys = {
 const runtime = { transactionId: '' };
 
 describe('Hedera module', () => {
+  test(
+    'should check isTokenAssociated',
+    async function () {
+      const { network, privateKey, accountId, tokenId, toWalletAddress: userAccountId } = testData;
+
+      const result = await HederaLib.isTokenAssociated(
+        network,
+        privateKey,
+        accountId,
+        userAccountId,
+        tokenId, // token Id
+      );
+
+      console.log({ result });
+      expect(typeof result).toBe('boolean');
+    },
+    mainTimeout * 3,
+  );
+
   test(
     'should getBalance',
     async function () {

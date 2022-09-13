@@ -1,15 +1,6 @@
 import { networks } from './config';
 import { _toDecimal, _toCrypto, _getAccountNumber } from './utils';
-import {
-  Client,
-  TransferTransaction,
-  AccountBalanceQuery,
-  TransactionRecordQuery,
-  Hbar,
-  PrivateKey,
-  TokenAssociateTransaction,
-  TokenUnfreezeTransaction,
-} from '@hashgraph/sdk';
+import { Client, TransferTransaction, AccountBalanceQuery, TransactionRecordQuery, Hbar } from '@hashgraph/sdk';
 import { Network, GetTransactionResult, SendTransactionResult, SendTransactionParams } from './types';
 
 const validWallet = /^(0|(?:[1-9]\d*))\.(0|(?:[1-9]\d*))\.(0|(?:[1-9]\d*))(?:-([a-z]{5}))?$/;
@@ -63,6 +54,32 @@ async function getClient(network: string, privateKey: string, accountId: string)
   client.setOperator(accountId, privateKey);
 
   return client;
+}
+
+/**
+ * Get the tokenAssociate transaction details by token id
+ * @param network
+ * @param privateKey
+ * @param accountId
+ * @param tokenId // tokenId
+ * @returns
+ */
+async function isTokenAssociated(
+  network: string,
+  privateKey: string,
+  accountId: string,
+  userAccountId: string,
+  tokenId: string,
+): Promise<boolean> {
+  const client = await getClient(network, privateKey, accountId);
+
+  const balance = await new AccountBalanceQuery()
+    .setAccountId(userAccountId) //  user's account id
+    .execute(client);
+
+  const token = balance.tokens?.get(tokenId); // will return null if token is not associated
+
+  return !!token;
 }
 
 /**
@@ -213,4 +230,5 @@ export = {
   isValidWalletAddress,
   sendTransaction,
   getBalance,
+  isTokenAssociated,
 };
