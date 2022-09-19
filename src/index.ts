@@ -56,13 +56,15 @@ async function getClient(network: string, privateKey: string, accountId: string)
   return client;
 }
 
+
 /**
  * Get the tokenAssociate transaction details by token id
- * @param network
- * @param privateKey
- * @param accountId
- * @param tokenId // tokenId
- * @returns
+ * @param network 
+ * @param privateKey 
+ * @param accountId 
+ * @param userAccountId  // user account id
+ * @param tokenId 
+ * @returns 
  */
 async function isTokenAssociated(
   network: string,
@@ -113,12 +115,16 @@ async function getBalance(
   return Number(_toDecimal(balance.hbars.toTinybars().toString(), decimals));
 }
 
+
+
+
 /**
  * Get the transaction details by transaction id
- * @param txId
- * @param network
- * @param decimals
- * @returns
+ * @param txnId 
+ * @param network 
+ * @param privateKey 
+ * @param accountId 
+ * @returns 
  */
 async function getTransaction(
   txnId: string,
@@ -156,8 +162,8 @@ async function getTransaction(
       isInvalid: TransactionRecord.receipt.status.toString() !== 'SUCCESS',
       network,
       nonce: TransactionRecord.transactionId.nonce?.toNumber() || 0,
-      transactionHash: TransactionRecord.transactionHash.toString(),
-      transactionId: TransactionRecord.transactionId.toString(),
+      transactionHash: TransactionRecord.transactionId.toString(),
+
       transactionLink: getTransactionLink(TransactionRecord.transactionId.toString(), network),
     },
   };
@@ -216,8 +222,7 @@ async function sendTransaction({
       network,
       nonce: sendTransactionResponse.transactionId.nonce?.toNumber() || 0,
       to,
-      transactionHash: sendTransactionResponse.transactionHash,
-      transactionId: sendTransactionResponse.transactionId.toString(),
+      transactionHash: sendTransactionResponse.transactionId.toString(),
       transactionLink: getTransactionLink(sendTransactionResponse.transactionId.toString(), network),
     },
   };

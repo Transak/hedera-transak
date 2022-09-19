@@ -51,7 +51,7 @@ const keys = {
   ],
 };
 
-const runtime = { transactionId: '' };
+const runtime = { transactionHash: '' };
 
 describe('Hedera module', () => {
   test(
@@ -120,7 +120,7 @@ describe('Hedera module', () => {
 
       console.log({ result });
 
-      runtime.transactionId = result.receipt.transactionId;
+      runtime.transactionHash = result.receipt.transactionHash;
 
       expect(Object.keys(result.receipt)).toEqual(expect.arrayContaining(keys.sendTransactionResponse));
     },
@@ -131,7 +131,7 @@ describe('Hedera module', () => {
     'should getTransaction',
     async function () {
       const { network, privateKey, accountId } = testData;
-      const { transactionId: txnId } = runtime;
+      const { transactionHash: txnId } = runtime;
       const result = await HederaLib.getTransaction(txnId, network, privateKey, accountId);
       console.log({ result });
 

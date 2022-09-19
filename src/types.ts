@@ -15,7 +15,6 @@ export type GetTransactionResult = {
     gasCostCryptoCurrency: string;
     gasCostInCrypto: number;
     gasLimit: number;
-
     isPending: boolean;
     isExecuted: boolean;
     isSuccessful: boolean;
@@ -24,7 +23,6 @@ export type GetTransactionResult = {
     network: string;
     nonce: number;
     transactionHash: string;
-    transactionId: string;
     transactionLink: string;
   };
 };
@@ -49,9 +47,8 @@ export type SendTransactionResult = {
     network: string;
     nonce: number;
     to: string;
-    transactionHash: Uint8Array;
+    transactionHash: string;
     transactionLink: string;
-    transactionId: string;
     transactionReceipt: TransactionReceipt;
   };
 };
