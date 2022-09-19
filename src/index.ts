@@ -56,15 +56,14 @@ async function getClient(network: string, privateKey: string, accountId: string)
   return client;
 }
 
-
 /**
  * Get the tokenAssociate transaction details by token id
- * @param network 
- * @param privateKey 
- * @param accountId 
+ * @param network
+ * @param privateKey
+ * @param accountId
  * @param userAccountId  // user account id
- * @param tokenId 
- * @returns 
+ * @param tokenId
+ * @returns
  */
 async function isTokenAssociated(
   network: string,
@@ -115,16 +114,13 @@ async function getBalance(
   return Number(_toDecimal(balance.hbars.toTinybars().toString(), decimals));
 }
 
-
-
-
 /**
  * Get the transaction details by transaction id
- * @param txnId 
- * @param network 
- * @param privateKey 
- * @param accountId 
- * @returns 
+ * @param txnId
+ * @param network
+ * @param privateKey
+ * @param accountId
+ * @returns
  */
 async function getTransaction(
   txnId: string,
