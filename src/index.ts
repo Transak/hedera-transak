@@ -190,20 +190,20 @@ async function sendTransaction({
 
   const from = client.operatorAccountId.toString(); // transak wallet address
 
-  //Create the transfer transaction
+  // Create the transfer transaction
   const transferTransaction = new TransferTransaction();
 
   if (!tokenId) {
     transferTransaction
-      .addHbarTransfer(from, Hbar.fromTinybars(-amountInCrypto.toNumber())) //Sending account
-      .addHbarTransfer(to, Hbar.fromTinybars(amountInCrypto.toNumber())); //Receiving account
+      .addHbarTransfer(from, Hbar.fromTinybars(-amountInCrypto.toNumber())) // Sending account
+      .addHbarTransfer(to, Hbar.fromTinybars(amountInCrypto.toNumber())); // Receiving account
   }
 
   if (tokenId) {
     // user needs to associate the token with the account before sending the token
     transferTransaction
-      .addTokenTransferWithDecimals(tokenId, from, -amountInCrypto.toNumber(), decimals) //Sending account
-      .addTokenTransferWithDecimals(tokenId, to, amountInCrypto.toNumber(), decimals) //Receiving account
+      .addTokenTransferWithDecimals(tokenId, from, -amountInCrypto.toNumber(), decimals) // Sending account
+      .addTokenTransferWithDecimals(tokenId, to, amountInCrypto.toNumber(), decimals) // Receiving account
       .freezeWith(client)
       .signWithOperator(client);
   }
