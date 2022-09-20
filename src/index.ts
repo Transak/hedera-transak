@@ -147,7 +147,7 @@ async function getTransaction(
     const transactionData = response.data.transactions[0];
 
     return {
-      transactionData: transactionData,
+      transactionData,
       receipt: {
         date: transactionData.consensus_timestamp,
         gasCostCryptoCurrency: 'HBAR',
