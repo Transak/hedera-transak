@@ -1,6 +1,7 @@
+import axios from 'axios';
 import { networks } from './config';
-import { _toDecimal, _toCrypto, _getAccountNumber } from './utils';
-import { Client, TransferTransaction, AccountBalanceQuery, TransactionRecordQuery, Hbar } from '@hashgraph/sdk';
+import { _toDecimal, _toCrypto, _getTransactionNumber } from './utils';
+import { Client, TransferTransaction, AccountBalanceQuery, Hbar } from '@hashgraph/sdk';
 import { Network, GetTransactionResult, SendTransactionResult, SendTransactionParams } from './types';
 
 const validWallet = /^(0|(?:[1-9]\d*))\.(0|(?:[1-9]\d*))\.(0|(?:[1-9]\d*))(?:-([a-z]{5}))?$/;
@@ -128,41 +129,44 @@ async function getTransaction(
   privateKey: string,
   accountId: string,
 ): Promise<GetTransactionResult | null> {
-  const client = await getClient(network, privateKey, accountId);
+  try {
+    const { mirrorNodeUrl } = getNetwork(network);
 
-  const TransactionRecord = await new TransactionRecordQuery()
-    .setTransactionId(txnId)
-    .setIncludeDuplicates(true)
-    .execute(client);
+    if (txnId.includes('@')) {
+      txnId = _getTransactionNumber(txnId);
+    }
 
-  const from = TransactionRecord.transactionId.accountId?.toString();
+    const response = await axios({
+      method: 'get',
+      url: mirrorNodeUrl + txnId,
+      headers: {
+        accept: 'application/json',
+      },
+    });
 
-  return {
-    transactionData: TransactionRecord,
-    receipt: {
-      amount: Math.abs(
-        TransactionRecord.transfers
-          .find(d => d.accountId.toString() === from)
-          ?.amount.toTinybars()
-          .toNumber() || 0,
-      ),
-      date: TransactionRecord.consensusTimestamp.toDate(),
-      from: from || '',
-      gasCostCryptoCurrency: 'HBAR',
-      gasCostInCrypto: TransactionRecord.transactionFee.toBigNumber().toNumber(),
-      gasLimit: 1,
-      isPending: false,
-      isExecuted: true,
-      isSuccessful: TransactionRecord.receipt.status.toString() === 'SUCCESS',
-      isFailed: TransactionRecord.receipt.status.toString() !== 'SUCCESS',
-      isInvalid: TransactionRecord.receipt.status.toString() !== 'SUCCESS',
-      network,
-      nonce: TransactionRecord.transactionId.nonce?.toNumber() || 0,
-      transactionHash: TransactionRecord.transactionId.toString(),
+    const transactionData = response.data.transactions[0];
 
-      transactionLink: getTransactionLink(TransactionRecord.transactionId.toString(), network),
-    },
-  };
+    return {
+      transactionData: transactionData,
+      receipt: {
+        date: transactionData.consensus_timestamp,
+        gasCostCryptoCurrency: 'HBAR',
+        gasCostInCrypto: +_toDecimal(transactionData.charged_tx_fee.toString(), 8),
+        gasLimit: +_toDecimal(transactionData.max_fee.toString(), 8),
+        isPending: false,
+        isExecuted: true,
+        isSuccessful: transactionData.result === 'SUCCESS',
+        isFailed: transactionData.result !== 'SUCCESS',
+        isInvalid: transactionData.result !== 'SUCCESS',
+        network,
+        nonce: transactionData.nonce || 0,
+        transactionHash: transactionData.transaction_id,
+        transactionLink: getTransactionLink(txnId, network),
+      },
+    };
+  } catch (error) {
+    return null;
+  }
 }
 
 /**
@@ -218,8 +222,11 @@ async function sendTransaction({
       network,
       nonce: sendTransactionResponse.transactionId.nonce?.toNumber() || 0,
       to,
-      transactionHash: sendTransactionResponse.transactionId.toString(),
-      transactionLink: getTransactionLink(sendTransactionResponse.transactionId.toString(), network),
+      transactionHash: _getTransactionNumber(sendTransactionResponse.transactionId.toString()),
+      transactionLink: getTransactionLink(
+        _getTransactionNumber(sendTransactionResponse.transactionId.toString()),
+        network,
+      ),
     },
   };
 }

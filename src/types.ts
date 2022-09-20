@@ -4,14 +4,15 @@ export type Network = {
   networkName: string;
   transactionLink: (arg0: string) => string;
   walletLink: (arg0: string) => string;
+  mirrorNodeUrl: string;
 };
 
 export type GetTransactionResult = {
   transactionData: TransactionRecord;
   receipt: {
-    amount: number;
+    // amount: number;
     date: Date | null;
-    from: string;
+    // from: string;
     gasCostCryptoCurrency: string;
     gasCostInCrypto: number;
     gasLimit: number;

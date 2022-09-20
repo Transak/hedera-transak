@@ -33,9 +33,9 @@ const keys = {
     'transactionReceipt',
   ],
   getTransactionResponse: [
-    'amount',
+    // 'amount',
     'date',
-    'from',
+    // 'from',
     'gasCostCryptoCurrency',
     'gasCostInCrypto',
     'gasLimit',
