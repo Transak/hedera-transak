@@ -11,7 +11,7 @@ export const _toCrypto = (amount: string, decimals: number): BigNumber => hether
 
 export const _getTransactionNumber = (txnId: string): string => {
   const [accountId, rest] = txnId.split('@');
-  const [realm ,timestamp ] = rest.split('.');
+  const [realm, timestamp] = rest.split('.');
 
-  return [accountId,realm,timestamp].join('-');
+  return [accountId, realm, timestamp].join('-');
 };
