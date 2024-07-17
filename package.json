@@ -1,6 +1,6 @@
 {
   "name": "@transak/hedera-transak",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -26,12 +26,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@ethersproject/abi": "^5.7.0",
-    "@ethersproject/basex": "^5.7.0",
-    "@ethersproject/random": "^5.7.0",
-    "@ethersproject/wordlists": "^5.7.0",
-    "@hashgraph/hethers": "^1.2.1",
-    "@hashgraph/sdk": "^2.18.1",
+    "@ethersproject/abi": "5.7.0",
+    "@ethersproject/basex": "5.7.0",
+    "@ethersproject/random": "5.7.0",
+    "@ethersproject/wordlists": "5.7.0",
+    "@hashgraph/hethers": "1.2.1",
+    "@hashgraph/sdk": "2.18.1",
     "axios": "^0.27.2",
     "dotenv": "10.0.0"
   },
